@@ -1,36 +1,67 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import type { PreviewServer, ViteDevServer } from "vite";
-import { existsSync, readFileSync } from "node:fs";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { resolve } from "node:path";
+import { posix, relative, resolve } from "node:path";
 
 type NextHandler = () => void;
 
 function getBundlerApiRequestPath(req: IncomingMessage) {
   const url = req.url ?? "";
-  return decodeURIComponent(url.split("?")[0] ?? "").replace(/^\/+/, "");
+  const rawPath = url.split("?")[0] ?? "";
+
+  try {
+    const decodedPath = decodeURIComponent(rawPath).replace(/^\/+/, "");
+    if (decodedPath.includes("\\")) return null;
+
+    const normalizedPath = posix.normalize(decodedPath);
+    if (!normalizedPath || normalizedPath === "." || normalizedPath.startsWith("../")) return null;
+    if (normalizedPath.includes("/../")) return null;
+
+    return normalizedPath;
+  } catch {
+    return null;
+  }
 }
 
-function sendBinaryFile(res: ServerResponse, filePath: string) {
-  const content = readFileSync(filePath);
+async function sendBinaryFile(res: ServerResponse, filePath: string) {
+  const fileStat = await stat(filePath);
+  if (!fileStat.isFile()) {
+    res.writeHead(404);
+    res.end("Not found");
+    return;
+  }
 
   res.writeHead(200, {
     "Content-Type": "application/octet-stream",
-    "Content-Length": content.length,
+    "Content-Length": fileStat.size,
   });
-  res.end(content);
+  createReadStream(filePath).pipe(res);
 }
 
 function serveBundlerApi(rootDir: string) {
   return (req: IncomingMessage, res: ServerResponse, next: NextHandler) => {
-    const filePath = resolve(rootDir, "bundler-api", getBundlerApiRequestPath(req));
-    if (!existsSync(filePath)) {
-      next();
+    const baseDir = resolve(rootDir, "bundler-api");
+    const requestPath = getBundlerApiRequestPath(req);
+    if (!requestPath) {
+      res.writeHead(400);
+      res.end("Invalid bundler API path");
       return;
     }
 
-    sendBinaryFile(res, filePath);
+    const filePath = resolve(baseDir, requestPath);
+    const relativePath = relative(baseDir, filePath);
+    if (relativePath.startsWith("..") || relativePath === "" || resolve(filePath) === baseDir) {
+      res.writeHead(400);
+      res.end("Invalid bundler API path");
+      return;
+    }
+
+    void sendBinaryFile(res, filePath).catch(() => {
+      next();
+    });
   };
 }
 

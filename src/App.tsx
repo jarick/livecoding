@@ -24,8 +24,8 @@ const extensions = [autocompletion()];
 const DEFAULT_TEMPLATE = "hello-world";
 const VALID_TEMPLATES = new Set<Template>(["hello-world", "todo", "chat", "matrix"]);
 
-function getTemplateParam() {
-  const tmpl = new URLSearchParams(window.location.search).get("template") as Template | null;
+function getTemplateParam(): Template {
+  const tmpl = new URLSearchParams(window.location.search).get("template");
   if (tmpl && VALID_TEMPLATES.has(tmpl)) return tmpl;
 
   return DEFAULT_TEMPLATE;
@@ -39,10 +39,11 @@ export default function App() {
 
   const togglePreview = () => {
     const app = appRef.current;
-    if (!app) return;
+    if (!app) return previewVisibleRef.current;
 
     previewVisibleRef.current = !previewVisibleRef.current;
     app.dataset.preview = previewVisibleRef.current ? "visible" : "hidden";
+    return previewVisibleRef.current;
   };
 
   return (

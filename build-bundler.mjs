@@ -67,17 +67,23 @@ for (const file of readdirSync(publicDir)) {
 }
 
 console.log("Patching encodeRequest for URL-safe base64 paths...");
+let patchedEncodeRequest = false;
 for (const file of readdirSync(publicDir)) {
   if (!file.endsWith('.js') || file.endsWith('.runtime.js') || file.endsWith('.js.map')) continue;
   const filePath = resolve(publicDir, file);
-  let content = readFileSync(filePath, "utf8");
-  const oldStr = 'btoa(`5(${e})`)';
-  const newStr = "btoa(`5(${e})`).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'')";
-  if (content.includes(oldStr)) {
-    content = content.replaceAll(oldStr, newStr);
-    writeFileSync(filePath, content, "utf8");
+  const content = readFileSync(filePath, "utf8");
+  const updated = content.replace(
+    /btoa\(`5\(\$\{(\w+)\}\)`\)/g,
+    "btoa(`5(${$1})`).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'')",
+  );
+  if (updated !== content) {
+    patchedEncodeRequest = true;
+    writeFileSync(filePath, updated, "utf8");
     console.log("  " + file);
   }
+}
+if (!patchedEncodeRequest) {
+  console.warn("  encodeRequest patch was not applied; bundler output may have changed");
 }
 
 function rawBtoa(str) {

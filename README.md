@@ -62,7 +62,7 @@ This separation is important. Preview code runs inside an iframe, but if the ifr
 
 ## Project Structure
 
-```
+```text
 ├── build-bundler.mjs          # Builds sandpack-bundler + pre-fetches deps
 ├── build-files.mjs            # Generates sandpack file bundles from templates
 ├── files/

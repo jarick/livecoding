@@ -1,6 +1,6 @@
 export type SandpackFiles = Record<string, { code: string }>;
 
-export type Template = "hello-world" | "todo" | "chat" | "matrix";
+export type Template = string;
 
 export interface SandpackData {
   activeFile: string;

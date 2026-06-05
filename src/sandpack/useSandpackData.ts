@@ -7,6 +7,8 @@ const jsonUrl = (tmpl: Template) => {
   return `/sandpack-files-${tmpl}.json`;
 };
 
+const DEFAULT_TEMPLATE = "hello-world";
+
 const loadData = async (tmpl: Template) => {
   try {
     const response = await fetch(jsonUrl(tmpl));
@@ -30,6 +32,7 @@ export function useSandpackData(tmpl: Template) {
 
     void Promise.resolve(loadCachedSandpackData(tmpl))
       .then((cached) => cached ?? loadData(tmpl))
+      .then((data) => data ?? (tmpl !== DEFAULT_TEMPLATE ? loadData(DEFAULT_TEMPLATE) : null))
       .then((data) => {
         if (cancelled) return;
         setState({ data, tmpl });

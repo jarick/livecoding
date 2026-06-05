@@ -39,7 +39,9 @@ for (const tmpl of templates) {
       const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
       entry = "/" + (pkg.main || "index.js").replace(/^\//, "");
       if (pkg.environment) environment = pkg.environment;
-    } catch {}
+    } catch (error) {
+      console.error(`Failed to parse ${pkgPath}; using default entry/environment.`, error);
+    }
   }
   const output = { activeFile: main, entry, environment, files };
   const outPath = resolve(publicDir, `sandpack-files-${tmpl.name}.json`);
@@ -52,7 +54,13 @@ for (const tmpl of templates) {
 const defaultSrc = resolve(publicDir, "sandpack-files-hello-world.json");
 const defaultDst = resolve(publicDir, "sandpack-files.json");
 if (existsSync(defaultSrc)) {
-  writeFileSync(defaultDst, readFileSync(defaultSrc, "utf8"));
-  console.log("  default: sandpack-files.json -> hello-world");
+  try {
+    writeFileSync(defaultDst, readFileSync(defaultSrc, "utf8"));
+    console.log("  default: sandpack-files.json -> hello-world");
+  } catch (error) {
+    console.error(`Failed to create default sandpack files from ${defaultSrc}.`, error);
+  }
+} else {
+  console.warn("  default: hello-world template was not found; sandpack-files.json was not created");
 }
 console.log(`Built ${templates.length} templates to public/sandpack-files-*.json`);

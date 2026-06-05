@@ -61,7 +61,7 @@ export function PreviewWatchdogProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      if (event.data.type === "done" && !event.data.compilatonError) {
+      if (event.data.type === "done" && !hasCompilationError(event.data)) {
         setError(null);
       }
     };
@@ -125,6 +125,7 @@ function isHeartbeat(data: unknown) {
 function isSandpackPreviewMessage(data: unknown): data is {
   action?: string;
   compilatonError?: boolean;
+  compilationError?: boolean;
   message?: string;
   title?: string;
   type: string;
@@ -137,4 +138,8 @@ function isSandpackPreviewMessage(data: unknown): data is {
     "type" in data &&
     typeof data.type === "string"
   );
+}
+
+function hasCompilationError(data: { compilatonError?: boolean; compilationError?: boolean }) {
+  return !!data.compilationError || !!data.compilatonError;
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { clearSandpackCache } from "../sandpack/storage";
 import type { Template } from "../sandpack/types";
 import { restartPreviewIframe } from "../sandpack/previewIframe";
@@ -6,9 +7,12 @@ export default function Header({
   onTogglePreview,
   template,
 }: {
-  onTogglePreview: () => void;
+  onTogglePreview: () => boolean;
   template: Template;
 }) {
+  const [isPreviewVisible, setPreviewVisible] = useState(true);
+  const toggleLabel = isPreviewVisible ? "Hide Preview" : "Show Preview";
+
   return (
     <header className="app-header">
       <div className="header-text">
@@ -26,8 +30,13 @@ export default function Header({
         className="toggle-btn"
         type="button"
         aria-label="Toggle preview"
-        onClick={onTogglePreview}
-      />
+        aria-pressed={!isPreviewVisible}
+        onClick={() => {
+          setPreviewVisible(onTogglePreview());
+        }}
+      >
+        {toggleLabel}
+      </button>
       <button
         className="reset-btn"
         type="button"

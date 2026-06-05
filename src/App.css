@@ -228,14 +228,6 @@ body {
   transition: background 0.15s;
 }
 
-.toggle-btn::before {
-  content: "Hide Preview";
-}
-
-.app[data-preview="hidden"] .toggle-btn::before {
-  content: "Show Preview";
-}
-
 .toggle-btn:hover {
   background: #1a4a8a;
 }
