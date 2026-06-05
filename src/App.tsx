@@ -7,7 +7,6 @@ import {
   SandpackPreview,
 } from "@codesandbox/sandpack-react";
 import { autocompletion } from "@codemirror/autocomplete";
-import type { Template } from "./sandpack/types";
 import ResizableLayout from "./components/ResizableLayout";
 import Header from "./components/Header";
 import { PreviewBrokenOverlay } from "./components/PreviewBrokenOverlay";
@@ -21,21 +20,20 @@ import "./App.css";
 
 const extensions = [autocompletion()];
 
-const DEFAULT_TEMPLATE = "hello-world";
-const VALID_TEMPLATES = new Set<Template>(["hello-world", "todo", "chat", "matrix"]);
+const TEMPLATE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
-function getTemplateParam(): Template {
+function getTemplateParam(): string | null {
   const tmpl = new URLSearchParams(window.location.search).get("template");
-  if (tmpl && VALID_TEMPLATES.has(tmpl)) return tmpl;
+  if (tmpl && TEMPLATE_NAME_PATTERN.test(tmpl)) return tmpl;
 
-  return DEFAULT_TEMPLATE;
+  return null;
 }
 
 export default function App() {
   const appRef = useRef<HTMLDivElement>(null);
   const previewVisibleRef = useRef(true);
-  const tmpl = getTemplateParam();
-  const sandpackData = useSandpackData(tmpl);
+  const requestedTemplate = getTemplateParam();
+  const { data: sandpackData, template } = useSandpackData(requestedTemplate);
 
   const togglePreview = () => {
     const app = appRef.current;
@@ -50,7 +48,7 @@ export default function App() {
     <div ref={appRef} className="app" data-preview="visible">
       {sandpackData ? (
         <SandpackProvider
-          key={tmpl}
+          key={template}
           files={sandpackData.files}
           options={{
             activeFile: sandpackData.activeFile,
@@ -68,12 +66,12 @@ export default function App() {
             dependencies: getSandboxDependencies(sandpackData),
           }}
         >
-          <Header template={tmpl} onTogglePreview={togglePreview} />
+          <Header template={template} onTogglePreview={togglePreview} />
           <main className="app-main">
             <SandpackRuntimeSync
               entry={sandpackData.entry}
               environment={sandpackData.environment}
-              tmpl={tmpl}
+              tmpl={template}
             />
             <ResizableLayout
               left={<SandpackFileExplorer autoHiddenFiles={false} />}

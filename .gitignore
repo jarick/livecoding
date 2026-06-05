@@ -4,6 +4,7 @@ docs/
 public/bundler/
 public/bundler-api/
 public/sandpack-files*
+public/sandpack-templates.json
 submodules/
 *.local
 files/*

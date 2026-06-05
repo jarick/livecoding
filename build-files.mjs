@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const filesDir = resolve(__dirname, "files");
 const publicDir = resolve(__dirname, "public");
+const defaultTemplate = "hello-world";
 
 if (!existsSync(publicDir)) mkdirSync(publicDir, { recursive: true });
 
@@ -24,6 +25,10 @@ function walk(rootDir, dir = rootDir) {
 }
 
 const templates = readdirSync(filesDir, { withFileTypes: true }).filter((e) => e.isDirectory());
+const manifest = {
+  defaultTemplate,
+  templates: [],
+};
 
 for (const tmpl of templates) {
   const dir = resolve(filesDir, tmpl.name);
@@ -46,21 +51,26 @@ for (const tmpl of templates) {
   const output = { activeFile: main, entry, environment, files };
   const outPath = resolve(publicDir, `sandpack-files-${tmpl.name}.json`);
   writeFileSync(outPath, JSON.stringify(output, null, 2), "utf8");
+  manifest.templates.push({
+    name: tmpl.name,
+    url: `/sandpack-files-${tmpl.name}.json`,
+  });
   const count = Object.keys(files).length;
   console.log(`  ${tmpl.name}: ${count} files, activeFile=${main}, entry=${entry}`);
 }
 
 // Default (no template) = hello-world
-const defaultSrc = resolve(publicDir, "sandpack-files-hello-world.json");
+const defaultSrc = resolve(publicDir, `sandpack-files-${defaultTemplate}.json`);
 const defaultDst = resolve(publicDir, "sandpack-files.json");
 if (existsSync(defaultSrc)) {
   try {
     writeFileSync(defaultDst, readFileSync(defaultSrc, "utf8"));
-    console.log("  default: sandpack-files.json -> hello-world");
+    console.log(`  default: sandpack-files.json -> ${defaultTemplate}`);
   } catch (error) {
     console.error(`Failed to create default sandpack files from ${defaultSrc}.`, error);
   }
 } else {
-  console.warn("  default: hello-world template was not found; sandpack-files.json was not created");
+  console.warn(`  default: ${defaultTemplate} template was not found; sandpack-files.json was not created`);
 }
+writeFileSync(resolve(publicDir, "sandpack-templates.json"), JSON.stringify(manifest, null, 2), "utf8");
 console.log(`Built ${templates.length} templates to public/sandpack-files-*.json`);
