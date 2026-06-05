@@ -1,6 +1,5 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import type { PreviewServer, ViteDevServer } from "vite";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -65,16 +64,18 @@ function serveBundlerApi(rootDir: string) {
   };
 }
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    configureServer(server: ViteDevServer) {
+function bundlerApiPlugin(): Plugin {
+  return {
+    name: "livecoding-bundler-api",
+    configureServer(server) {
       server.middlewares.use("/bundler-api/", serveBundlerApi("public"));
     },
-  },
-  preview: {
-    configureServer(server: PreviewServer) {
+    configurePreviewServer(server) {
       server.middlewares.use("/bundler-api/", serveBundlerApi("dist"));
     },
-  },
+  };
+}
+
+export default defineConfig({
+  plugins: [react(), bundlerApiPlugin()],
 });

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { sanitizeSandpackData } from "./dependencies";
 import { loadCachedSandpackData } from "./storage";
 import type { SandpackData, Template, TemplatesManifest } from "./types";
+import { isSandpackData } from "./validation";
 
 const DEFAULT_TEMPLATE = "hello-world";
 const DEFAULT_MANIFEST: TemplatesManifest = {
@@ -27,7 +28,8 @@ const loadData = async (url: string): Promise<SandpackData | null> => {
     if (!response.ok) {
       throw new Error("Failed to load files");
     }
-    return (await response.json()) as SandpackData;
+    const data: unknown = await response.json();
+    return isSandpackData(data) ? data : null;
   } catch {
     return null;
   }

@@ -1,4 +1,5 @@
 import type { SandpackData, Template } from "./types";
+import { isSandpackData } from "./validation";
 
 const STORAGE_PREFIX = "sandpack-template-cache";
 
@@ -19,23 +20,13 @@ export function loadCachedSandpackData(tmpl: Template): SandpackData | null {
 }
 
 export function saveSandpackData(data: SandpackData, tmpl: Template) {
-  localStorage.setItem(storageKey(tmpl), JSON.stringify(data));
+  try {
+    localStorage.setItem(storageKey(tmpl), JSON.stringify(data));
+  } catch {
+    // Cache failures should not interrupt editing or preview updates.
+  }
 }
 
 export function clearSandpackCache(tmpl: Template) {
   localStorage.removeItem(storageKey(tmpl));
-}
-
-function isSandpackData(value: unknown): value is SandpackData {
-  if (!isObject(value)) return false;
-  if (typeof value.activeFile !== "string") return false;
-  if (typeof value.entry !== "string") return false;
-  if (value.environment !== undefined && typeof value.environment !== "string") return false;
-  if (!isObject(value.files)) return false;
-
-  return Object.values(value.files).every((file) => isObject(file) && typeof file.code === "string");
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }

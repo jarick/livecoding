@@ -284,7 +284,7 @@ body {
   white-space: pre-wrap;
   text-align: left;
   color: #ffd6de;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
 }
 
