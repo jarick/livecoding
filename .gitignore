@@ -1,0 +1,16 @@
+node_modules/
+dist/
+docs/
+public/bundler/
+public/bundler-api/
+public/sandpack-files*
+submodules/
+*.local
+files/*
+!files/.gitkeep
+!files/README.md
+!files/hello-world/
+!files/hello-world/**
+deploy.mjs
+.env
+*.tsbuildinfo
