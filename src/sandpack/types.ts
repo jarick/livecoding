@@ -3,6 +3,7 @@ export type SandpackFiles = Record<string, { code: string }>;
 export type Template = string;
 
 export interface TemplatesManifest {
+  buildId?: string;
   defaultTemplate: Template;
   templates: Array<{
     name: Template;

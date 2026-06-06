@@ -133,8 +133,8 @@ function getRuntimeDeps(pkgPath) {
   }
 
   if (!Object.keys(deps).length) {
-    deps.react = "^18.0.0";
-    deps["react-dom"] = "^18.0.0";
+    deps.react = "^19.2.0";
+    deps["react-dom"] = "^19.2.0";
   }
 
   // preset.augmentDependencies adds react-refresh and core-js

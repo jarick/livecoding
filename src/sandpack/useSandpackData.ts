@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { sanitizeSandpackData } from "./dependencies";
-import { loadCachedSandpackData } from "./storage";
+import { loadCachedSandpackData, resetSandpackCacheOnBuildChange } from "./storage";
 import type { SandpackData, Template, TemplatesManifest } from "./types";
 import { isSandpackData } from "./validation";
 
@@ -46,6 +46,10 @@ export function useSandpackData(requestedTemplate: Template | null) {
 
     void loadManifest()
       .then(async (manifest) => {
+        if (manifest.buildId) {
+          resetSandpackCacheOnBuildChange(manifest.buildId);
+        }
+
         const defaultTemplate =
           manifest.templates.find((template) => template.name === manifest.defaultTemplate) ??
           DEFAULT_MANIFEST.templates[0];
@@ -80,6 +84,7 @@ export function useSandpackData(requestedTemplate: Template | null) {
 
 function isTemplatesManifest(value: unknown): value is TemplatesManifest {
   if (!isObject(value)) return false;
+  if (value.buildId !== undefined && typeof value.buildId !== "string") return false;
   if (typeof value.defaultTemplate !== "string") return false;
   if (!Array.isArray(value.templates)) return false;
 

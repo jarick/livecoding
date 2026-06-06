@@ -8,6 +8,7 @@ public/sandpack-templates.json
 submodules/
 *.local
 files/*
+static/
 !files/.gitkeep
 !files/README.md
 !files/hello-world/

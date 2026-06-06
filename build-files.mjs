@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from "fs";
 import { resolve, dirname, relative } from "path";
 import { fileURLToPath } from "url";
+import { createHash } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const filesDir = resolve(__dirname, "files");
@@ -24,8 +25,29 @@ function walk(rootDir, dir = rootDir) {
   return result;
 }
 
+function computeContentHash() {
+  const hash = createHash('sha256');
+  const allContent = [];
+
+  for (const tmpl of templates.slice().sort((a, b) => a.name.localeCompare(b.name))) {
+    const dir = resolve(filesDir, tmpl.name);
+    const files = walk(dir);
+    const keys = Object.keys(files).sort();
+  
+    for (const key of keys) {
+      allContent.push(`${key}:${files[key].code}`);
+    }
+  }
+
+  hash.update(allContent.join('\n'));
+
+  return hash.digest('hex');
+}
+
 const templates = readdirSync(filesDir, { withFileTypes: true }).filter((e) => e.isDirectory());
+
 const manifest = {
+  buildId: computeContentHash(),
   defaultTemplate,
   templates: [],
 };
@@ -33,8 +55,14 @@ const manifest = {
 for (const tmpl of templates) {
   const dir = resolve(filesDir, tmpl.name);
   const files = walk(dir);
-  const main =
-    Object.keys(files).find((f) => f === "/App.tsx" || f === "/App.js" || f === "/index.js") ||
+  
+  if (Object.keys(files).length === 0) {
+    console.warn(`${tmpl.name}: WARNING - no files found in template directory, skipping`);
+
+    continue;
+  }
+  
+  const main = ["/App.tsx", "/App.jsx", "/index.js"].find((f) => f in files) ||
     Object.keys(files)[0];
   const pkgPath = resolve(dir, "package.json");
   let entry = "/index.js";

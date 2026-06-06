@@ -1,8 +1,8 @@
 import type { SandpackData } from "./types";
 
 const FALLBACK_DEPENDENCIES = {
-  react: "^18.0.0",
-  "react-dom": "^18.0.0",
+  react: "^19.2.0",
+  "react-dom": "^19.2.0",
 };
 
 const BUILD_DEPENDENCIES = new Set([
